@@ -6,117 +6,127 @@
 /*   By: jkim2 <jkim2@student.42gyeongsan.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 02:46:51 by jkim2             #+#    #+#             */
-/*   Updated: 2026/01/21 04:17:38 by jkim2            ###   ########.fr       */
+/*   Updated: 2026/01/21 05:55:34 by jkim2            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-static int	append_buffer(t_static *stash, char *buffer, size_t bytes_read)
+static int	append_buffer(t_stash *stash, char *buffer, size_t n)
 {
-	char	*new_content;
 	size_t	i;
-	size_t	j;
 
-	new_content = malloc(stash->size + bytes_read);
-	if (!new_content)
-	{
-		stash_clear(stash);
+	if (stash_reserve(stash, n))
 		return (1);
-	}
 	i = 0;
-	while (i < stash->size)
+	while (i < n)
 	{
-		new_content[i] = stash->content[i];
+		stash->content[stash->size + i] = buffer[i];
 		i++;
 	}
-	j = 0;
-	while (j < bytes_read)
-		new_content[i++] = buffer[j++];
-	free(stash->content);
-	stash->content = new_content;
-	stash->size += bytes_read;
+	stash->size += n;
 	return (0);
 }
 
-static int	stash_trim(t_static *stash, size_t newline_idx)
+static void	stash_trim(t_stash *stash, size_t newline_idx)
 {
-	char	*new_content;
 	size_t	start;
-	size_t	new_size;
 	size_t	i;
 
-	if (!stash->content || stash->size == 0)
-		return (0);
 	if (newline_idx >= stash->size)
-		return (stash_clear(stash), 0);
+	{
+		stash_clear(stash);
+		return ;
+	}
 	start = newline_idx + 1;
-	new_size = stash->size - start;
-	if (new_size == 0)
-		return (stash_clear(stash), 0);
-	new_content = malloc(new_size);
-	if (!new_content)
-		return (stash_clear(stash), 1);
 	i = 0;
-	while (i < new_size)
-		new_content[i++] = stash->content[start++];
-	free(stash->content);
-	stash->content = new_content;
-	stash->size = new_size;
-	return (0);
+	while (start < stash->size)
+	{
+		stash->content[i] = stash->content[start];
+		i++;
+		start++;
+	}
+	stash->size = i;
+	if (stash->size == 0)
+		stash_clear(stash);
 }
 
-static char	*get_line(t_static *stash)
+static char	*extract_line(t_stash *stash)
 {
 	char	*line;
 	size_t	idx;
-	size_t	linelen;
+	size_t	len;
 	size_t	i;
 
-	if (!stash->content || stash->size == 0)
-		return (NULL);
 	idx = newline_index(stash);
-	linelen = stash->size;
+	len = stash->size;
 	if (idx < stash->size)
-		linelen = idx + 1;
-	line = malloc(linelen + 1);
+		len = idx + 1;
+	line = malloc(len + 1);
 	if (!line)
 		return (stash_clear(stash), NULL);
 	i = 0;
-	while (i < linelen)
+	while (i < len)
 	{
 		line[i] = stash->content[i];
 		i++;
 	}
-	line[linelen] = '\0';
-	if (stash_trim(stash, idx))
-		return (free(line), NULL);
+	line[len] = '\0';
+	stash_trim(stash, idx);
 	return (line);
+}
+
+static int	fill_stash(int fd, t_stash *stash, char *buffer)
+{
+	ssize_t	br;
+	ssize_t	i;
+
+	br = 1;
+	while (br > 0)
+	{
+		br = read(fd, buffer, BUFFER_SIZE);
+		if (br < 0)
+			return (-1);
+		if (br == 0)
+			return (0);
+		if (append_buffer(stash, buffer, (size_t)br))
+			return (-1);
+		i = 0;
+		while (i < br)
+		{
+			if (buffer[i] == '\n')
+				return (0);
+			i++;
+		}
+	}
+	return (0);
 }
 
 char	*get_next_line(int fd)
 {
-	static t_static	stash;
+	static t_stash	stash;
 	static int		last_fd = -1;
 	char			*buffer;
-	ssize_t			bytes_read;
+	int				ret;
 
 	if (fd < 0 || BUFFER_SIZE <= 0)
 		return (NULL);
 	if (last_fd != fd)
-		(stash_clear(&stash), last_fd = fd);
+	{
+		stash_clear(&stash);
+		last_fd = fd;
+	}
 	buffer = malloc(BUFFER_SIZE);
 	if (!buffer)
 		return (stash_clear(&stash), NULL);
-	bytes_read = 1;
-	while (bytes_read > 0 && !has_newline(&stash))
+	if (newline_index(&stash) == stash.size)
 	{
-		bytes_read = read(fd, buffer, BUFFER_SIZE);
-		if (bytes_read < 0)
+		ret = fill_stash(fd, &stash, buffer);
+		if (ret < 0)
 			return (stash_clear(&stash), free(buffer), NULL);
-		if (bytes_read > 0 && append_buffer(&stash, buffer, (size_t)bytes_read))
-			return (free(buffer), NULL);
 	}
 	free(buffer);
-	return (get_line(&stash));
+	if (stash.size == 0)
+		return (stash_clear(&stash), NULL);
+	return (extract_line(&stash));
 }

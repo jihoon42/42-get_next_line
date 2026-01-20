@@ -6,7 +6,7 @@
 /*   By: jkim2 <jkim2@student.42gyeongsan.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/21 02:45:14 by jkim2             #+#    #+#             */
-/*   Updated: 2026/01/21 04:17:05 by jkim2            ###   ########.fr       */
+/*   Updated: 2026/01/21 05:55:04 by jkim2            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,16 +20,17 @@
 #  define BUFFER_SIZE 42
 # endif
 
-typedef struct s_static
+typedef struct s_stash
 {
 	char	*content;
 	size_t	size;
-}	t_static;
+	size_t	cap;
+}	t_stash;
 
 char	*get_next_line(int fd);
 
-int		has_newline(t_static *stash);
-size_t	newline_index(t_static *stash);
-void	stash_clear(t_static *stash);
+size_t	newline_index(t_stash *stash);
+void	stash_clear(t_stash *stash);
+int		stash_reserve(t_stash *stash, size_t add);
 
 #endif
