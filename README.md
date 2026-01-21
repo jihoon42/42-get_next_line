@@ -32,13 +32,16 @@ cc -Wall -Wextra -Werror -D BUFFER_SIZE=42 get_next_line.c get_next_line_utils.c
 ### Development Environment & Verification
 
 **Working Environment**: Developed on macOS (Apple M1 Pro) and cross-verified in the 42 Cluster Ubuntu environment.
+
 **Testing Tools**:
 Verified with Tripouille's [gnlTester](https://github.com/Tripouille/gnlTester) to ensure 100% compliance with edge cases (empty files, standard input, large/small buffer sizes).
 Manual verification using a custom test suite.
 
 
 Memory Management:
+
 **macOS**: Checked with `leaks -atExit -- ./test`.
+
 **Ubuntu**: Checked with `valgrind --leak-check=full ./test`.
 
 
@@ -72,16 +75,22 @@ The `extract_line` and `stash_trim` functions work in tandem to return the curre
 ### References & Documentation
 
 **Test Suite**: [42-get_next_line-w-tests](https://github.com/jihoon42/get_next_line-w-tests) (My personal repository including custom test cases and scripts).
-**Static Variables in C**: Deep dive into scope and lifetime management in C.
-**File Descriptors**: Study of `read(2)` and the behavior of FDs on different systems.
+
+**Static Variables in C**: Deep dive into scope and lifetime management in C. [Wikipedia: Static variable](https://en.wikipedia.org/wiki/Static_variable)
+
+**File Descriptors**: Study of `read(2)` and the behavior of FDs on different systems.  [Wikipedia: File descriptor](https://en.wikipedia.org/wiki/File_descriptor)
+
 
 ### AI Usage Disclosure
 
 In accordance with the 42 AI policy, AI tools were utilized as a technical thought partner for:
 
 **Structural Refinement**: Assisted in designing the logic for `stash_reserve` to ensure memory safety when reallocating the dynamic buffer.
+
 **Edge-Case Brainstorming**: Used to identify potential issues with `BUFFER_SIZE=1`, file descriptors pointing to directories, or files that do not end with a newline.
+
 **Documentation Refinement**: Assisted in structuring this README and ensuring the technical justifications are articulated clearly in English.
+
 **Countermeasures**: All logic was manually verified and debugged. The final code passed all mandatory tests in the Tripouille tester without unauthorized external dependencies.
 
 ---
@@ -96,7 +105,9 @@ In accordance with the 42 AI policy, AI tools were utilized as a technical thoug
 ### 함수 요약
 
 **프로토타입**: `char *get_next_line(int fd);`
+
   **매개변수**: 읽어들일 파일 디스크립터(fd)
+  
   **반환 값**: 읽어온 한 줄(줄 바꿈 문자 `\n`이 포함됨), 읽을 내용이 더 이상 없거나 에러가 발생한 경우 `NULL` 반환
 
 ---
@@ -115,13 +126,18 @@ cc -Wall -Wextra -Werror -D BUFFER_SIZE=42 get_next_line.c get_next_line_utils.c
 ### 개발 환경 및 검증 (Development Environment & Verification)
 
 **작업 환경**: macOS (Apple M1 Pro)에서 개발되었으며, 42 클러스터 Ubuntu 환경에서 교차 검증을 완료하였습니다.
+
 **테스트 도구**:
+
 txt 파일 및 main.c를 직접 작성하면서 수동 검증을 수행하였고 이를 기록해두었습니다. (이하 참조)
+
 Tripouille의 [gnlTester](https://github.com/Tripouille/gnlTester)를 사용하여 예외 상황(빈 파일, 표준 입력, 매우 크거나 작은 버퍼 사이즈 등)에 대한 100% 호환성을 확인하였습니다.
 
 
   **메모리 관리**:
+  
   **macOS**: `leaks -atExit -- ./test` 명령어로 확인.
+  
   **Ubuntu**: `valgrind --leak-check=full ./test` 도구로 검증.
 
 
@@ -155,12 +171,16 @@ Tripouille의 [gnlTester](https://github.com/Tripouille/gnlTester)를 사용하�
 ### 참조 및 문서
 
 **테스트**: [42-get_next_line-w-tests](https://github.com/jihoon42/get_next_line-w-tests) (직접 작성한 테스트 케이스와 스크립트가 포함된 개인 레포지토리)
+
 **파일 디스크립터**: `read(2)` 함수의 동작과 운영체제별 FD 동작 방식 학습
 
 ### AI 활용 고지 (AI Usage Disclosure)
 
 **구조적 개선**: 동적 버퍼 재할당 시 메모리 안전성을 보장하기 위한 `stash_reserve` 로직 설계 보조.
+
 **예외 상황 브레인스토밍**: `BUFFER_SIZE=1`인 경우, 디렉토리를 가리키는 파일 디스크립터, 혹은 줄 바꿈 문자로 끝나지 않는 파일 등에서 발생할 수 있는 잠재적 이슈 식별.
+
 **문서화 최적화**: 본 README의 구조를 잡고 기술적 정당화 섹션을 명확한 영문(및 국문)으로 다듬는 데 도움을 받음.
+
 **대응 조치**: 모든 로직은 수동으로 검증 및 디버깅되었습니다. 최종 코드는 허용되지 않은 외부 라이브러리 의존성 없이 Tripouille 테스터의 모든 필수 테스트를 통과하였습니다.
 
